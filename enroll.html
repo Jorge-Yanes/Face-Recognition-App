@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="assets/css/styleEnroll.css">
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+</head>
+
+<body>
+
+    <div class="col-xs-12" id="abc123">
+
+
+        <video autoplay="true" id="video"></video>
+        <div class="numbers" ><span class="clk" id="clicks"></span></div>
+        <canvas id="canvas"></canvas>
+    </div>
+    <div id="photo" alt="photo">
+    </div>
+    <div id="error"></div>
+
+    <div class="row" id="all">
+        <div class="col-xs-12 col-sm-6 col-md-8">
+            <div class="form-group">
+                <p class="help-block">The system will take 9 photos of you.</p>
+                <form id="form" onsubmit="return false;">
+                    <h4> User name:<br>
+                        <input class="form-control" type="text" id="userInput" required />
+                        <div class="input-append">
+                            <span class="add-on">https://www.</span>
+
+                            <input class="span2" type="url" id="urls">
+                            <button class="btn" type="button" onclick="addUrl()">Add URL.</button>
+
+                        </div>
+                    </h4>
+                    <div class="col-lg-12 col-md-12">
+                        <h3>Please look at the camera and wait until all photos are taken.</h3>
+                        <br>
+                      <!--  <h4>Photos taken: <a id="clicks">0</a> of 9.</h4>-->
+
+
+                        <input class="btn btn-primary btn-lg btn-block" id="startbutton" type="submit" />
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+
+
+
+
+
+    
+    
+
+    <script>
+        var subject_name = document.getElementById("userInput").value;
+        var url1 = document.getElementById("urls").value;
+
+
+        /*Function made to count the number of images send to the api*/
+        var clicks = 9;
+
+        function onClick() {
+            if (clicks === 0) {
+                window.location = "dashboard.html";
+            } else {
+                clicks -= 1;
+                document.getElementById("clicks").innerHTML = clicks;
+            }
+        };
+
+        var otro = document.getElementById("userInput").value;
+        otro = new Array();
+
+        function addUrl() {
+
+            otro.push(url1);
+            console.log(otro);
+
+        };
+
+
+        //This function manages the camera, takes the photos, 
+        (function() {
+
+            var streaming = false,
+                video = document.querySelector('#video'),
+                canvas = document.querySelector('#canvas'),
+                photo = document.querySelector('#photo'),
+                startbutton = document.querySelector('#startbutton'),
+                width = 480,
+                height = 0;
+
+            navigator.getMedia = (navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia ||
+                navigator.msGetUserMedia);
+
+            navigator.getMedia({
+                    video: true,
+                    audio: false
+                },
+                function(stream) {
+                    if (navigator.mozGetUserMedia) {
+                        video.mozSrcObject = stream;
+                    } else {
+                        var vendorURL = window.URL || window.webkitURL;
+                        video.src = vendorURL.createObjectURL(stream);
+                    }
+                    video.play();
+                },
+                function(err) {
+                    console.log("An error occured! " + err);
+                }
+            );
+
+            video.addEventListener('canplay', function(ev) {
+                if (!streaming) {
+                    height = video.videoHeight / (video.videoWidth / width);
+                    video.setAttribute('width', width);
+                    video.setAttribute('height', height);
+                    canvas.setAttribute('width', width);
+                    canvas.setAttribute('height', height);
+                    streaming = true;
+                }
+            }, false);
+
+            function takePicture() {
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+                var data = canvas.toDataURL('image/png');
+                photo.setAttribute('src', data);
+                subirFoto(subject_name);
+            }
+            var a;
+            var b;
+
+            function autoTakePictures() {
+
+                a = setInterval(takePicture, 3000);
+                b = setInterval(onClick, 3500);
+
+            }
+
+            startbutton.addEventListener('click', function(ev) {
+                autoTakePictures();
+                ev.preventDefault();
+            }, false);
+
+
+
+        })();
+
+
+
+        //Enrolling a photo with a determinated id to a determinated gallery
+
+        function subirFoto(subject_name) {
+            var request = new XMLHttpRequest();
+
+            request.open('POST', 'https://api.kairos.com/enroll');
+
+            request.setRequestHeader('Content-Type', 'application/json');
+            request.setRequestHeader('app_id', 'c91f845b');
+            request.setRequestHeader('app_key', 'c000a704430af1656e1848ea61964077');
+
+            request.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    console.log('Status:', this.status);
+                    console.log('Headers:', this.getAllResponseHeaders());
+                    console.log('Body:', this.responseText);
+                }
+            };
+
+            var foto = document.getElementById("photo").getAttribute("src");
+            var subject_name = document.getElementById("userInput").value;
+
+
+
+            var body = {
+                'image': foto,
+                'subject_id': subject_name,
+                'gallery_name': 'Jorge Gallery'
+
+            };
+
+            request.send(JSON.stringify(body));
+        }
+
+    </script>
+
+</body>
+
+</html>

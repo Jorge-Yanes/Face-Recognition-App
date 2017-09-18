@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+    <link href="assets/css/style.css" rel="stylesheet" />
+</head>
+
+<body>
+    <h3><a class="navbar-brand">Face Recognition System</a></h3>
+
+    <form class="navbar-form navbar-right">
+        <div class="form-group">
+            <div class="username">
+                <input type="text" class="form-control" placeholder="Username" id="user" />
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="password">
+                <input type="text" class="form-control" placeholder="Password" id="pass" />
+            </div>
+        </div>
+
+        <button type="button" class="btn btn-default" onclick="log_In()">Log In</button>
+
+    </form>
+
+    <div class="col-xs-12" id="1234">
+        <br>
+        <h4>
+            <div id="error"></div>
+        </h4>
+        <br>
+        <br>
+
+        <div id="photo" alt="photo"></div>
+        <div id="container"><video autoplay="true" id="video"></video> <canvas id="canvas"></canvas>
+        </div>
+
+        <div id="error"></div>
+
+
+        <h1>
+            <table class="table" id="infoTables"> </table>
+        </h1>
+        <button type="button" id="recognizeButton" class="btn btn-primary btn-block">Verify Face</button>
+
+    </div>
+    <script type="text/javascript">
+        function log_In() {
+            var us = document.getElementById("user").value;
+            var pas = document.getElementById("pass").value;
+            if (us === "admin" && pas === "admin") {
+                window.location = "dashboard.html";
+            } else {
+                document.getElementById("error").innerHTML = "Incorrect user or password. (Try admin/admin)";
+            }
+        }
+        //This function manages the camera, takes the photos, 
+        (function() {
+
+            var streaming = false,
+                video = document.querySelector('#video'),
+                canvas = document.querySelector('#canvas'),
+                photo = document.querySelector('#photo'),
+                recognizeButton = document.querySelector('#recognizeButton'),
+                width = 480,
+                height = 0;
+
+            navigator.getMedia = (navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia ||
+                navigator.msGetUserMedia);
+
+            navigator.getMedia({
+                    video: true,
+                    audio: false
+                },
+                function(stream) {
+                    if (navigator.mozGetUserMedia) {
+                        video.mozSrcObject = stream;
+                    } else {
+                        var vendorURL = window.URL || window.webkitURL;
+                        video.src = vendorURL.createObjectURL(stream);
+                    }
+                    video.play();
+                },
+                function(err) {
+                    console.log("An error occured! " + err);
+                }
+            );
+
+            video.addEventListener('canplay', function(ev) {
+                if (!streaming) {
+                    height = video.videoHeight / (video.videoWidth / width);
+                    video.setAttribute('width', width);
+                    video.setAttribute('height', height);
+                    canvas.setAttribute('width', width);
+                    canvas.setAttribute('height', height);
+                    streaming = true;
+                }
+            }, false);
+
+            function takepicture() {
+                canvas.width = width;
+                canvas.height = height;
+                canvas.getContext('2d').drawImage(video, 0, 0, width, height);
+                var data = canvas.toDataURL('image/png');
+                photo.setAttribute('src', data);
+                recognizeSubject();
+
+            }
+
+
+            recognizeButton.addEventListener('click', function(ev) {
+                takepicture();
+                ev.preventDefault();
+            }, false);
+
+
+
+        })();
+
+        function recognizeSubject() {
+            var request = new XMLHttpRequest();
+
+            request.open('POST', 'https://api.kairos.com/recognize');
+
+            request.setRequestHeader('Content-Type', 'application/json');
+            request.setRequestHeader('app_id', 'c91f845b');
+            request.setRequestHeader('app_key', 'c000a704430af1656e1848ea61964077');
+
+
+            request.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    console.log('Status:', this.status);
+                    console.log('Headers:', this.getAllResponseHeaders());
+                    console.log('Body:', JSON.parse(this.responseText));
+                    var myObj = JSON.parse(this.responseText);
+
+                    //   console.log(myObj.images["0"].candidates["0"].subject_id);
+                }
+
+                document.getElementById("infoTables").innerHTML = "Welcome " + myObj.images["0"].candidates["0"].subject_id;
+                /* document.getElementById("infoTables").innerHTML = "ERROR!! : " + myObj.Errors["0"].Message;
+                 */
+                //No es una forma buena de hacerlo pero funciona.
+                if (document.getElementById("infoTables").value != "") {
+                    document.body.style.backgroundColor = "SpringGreen";
+                   setTimeout(redirect, 3000);
+
+                }
+                function redirect(){
+                    location.href = "http://www.realbetisbalompie.es/es/";
+                }
+            };
+
+            var foto = document.getElementById("photo").getAttribute("src");
+
+            var body = {
+                'image': foto,
+                'gallery_name': 'Jorge Gallery'
+            };
+
+            request.send(JSON.stringify(body));
+        }
+
+    </script>
+
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,21 @@
+#abc123 {
+    margin-left: 15%;
+}
+
+.numbers {
+    position: absolute;
+    width: 480px;
+    height: 360px !important;
+    background: gray;
+    margin-top: -366px;
+    opacity: 0.5;
+}
+
+.clk {
+    font-size: 300px;
+        margin-left: 150px;
+}
+
+#all {
+    margin-left: 20%;
+}

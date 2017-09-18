@@ -1,0 +1,199 @@
+﻿<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Simple Responsive Admin</title>
+    <!-- BOOTSTRAP STYLES-->
+    <link href="assets/css/bootstrap.css" rel="stylesheet" />
+    <!-- FONTAWESOME STYLES-->
+    <link href="assets/css/font-awesome.css" rel="stylesheet" />
+    <!-- CUSTOM STYLES-->
+    <link href="assets/css/custom.css" rel="stylesheet" />
+    <!-- GOOGLE FONTS-->
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css' />
+
+    <link href="assets/css/dashboardStyle.css" rel="stylesheet" />
+
+</head>
+
+<body>
+
+    <div id="wrapper">
+        <div class="navbar navbar-inverse navbar-fixed-top">
+            <div class="adjust-nav">
+                <div class="navbar-header">
+
+                    <a class="navbar-brand" href="index.html">
+                        <img src="assets/img/facialrecognition_1.jpg" />
+                    </a>
+                </div>
+
+                <span class="logout-spn">
+                  <a href="index.html" style="color:#fff;">LOGOUT</a>  
+
+                </span>
+            </div>
+        </div>
+    </div>
+    <br>
+    <br>
+    <br>
+
+    <br>
+    <div class="col-xs-12 col-sm-6 col-md-8" id="all">
+        <h3> Actual enrolled users :</h3>
+        <h3>
+            <table class="table table-hover" id="mitabla" border="5" cellpadding="10">
+            </table>
+
+            <div class="row">
+                <a href="enroll.html"> <button type="button" class="btn btn-primary btn-block" onclick="enroll.html">Add new users.</button></a>
+
+            </div>
+
+            <hr>
+            <hr>
+
+
+            <div class="row">
+                <div class="col-lg-4 col-md-4">
+                    <p class="help-block"> Enter the user to delete.</p>
+                    <form id="form" onsubmit="return false;">
+
+                        <input class="form-control" type="text" id="userToDelete" onsubmit="deleteSubject()" />
+                    </form>
+                </div>
+                <hr>
+                <div class="col-lg-4 col-md-4">
+                    <button class="btn btn-primary btn-lg btn-block" onClick="deleteSubject()">Delete user.</button>
+
+                </div>
+                <div class="col-lg-4 col-md-4">
+                    <button class="btn btn-primary btn-lg btn-block" value="Delete all users." onClick="deleteGallery()"> Delete all users.</button>
+
+                </div>
+            </div>
+        </h3>
+
+
+
+        <p id="errors"></p>
+    </div>
+
+
+    <!-- /. WRAPPER  -->
+    <!-- SCRIPTS -AT THE BOTOM TO REDUCE THE LOAD TIME-->
+    <!-- JQUERY SCRIPTS -->
+    <script src="assets/js/jquery-1.10.2.js"></script>
+    <!-- BOOTSTRAP SCRIPTS -->
+    <script src="assets/js/bootstrap.min.js"></script>
+
+
+    <script type="text/javascript">
+        var subjectToDelete = document.getElementById("userToDelete").value;
+
+        function viewSubjects() {
+            var request = new XMLHttpRequest();
+
+            request.open('POST', 'https://api.kairos.com/gallery/view');
+
+            request.setRequestHeader('Content-Type', 'application/json');
+            request.setRequestHeader('app_id', 'c91f845b');
+            request.setRequestHeader('app_key', 'c000a704430af1656e1848ea61964077');
+
+            request.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    console.log('Status:', this.status);
+                    console.log('Headers:', this.getAllResponseHeaders());
+                    console.log('Body:', JSON.parse(this.responseText));
+                    var myObj = JSON.parse(this.responseText);
+                    var i;
+                    let tabla = "";
+
+                    for (i = 0; i < myObj.subject_ids.length; i++) {
+                        tabla += "<td>" + myObj.subject_ids[i] + "</td>";
+
+                        tabla += "</tr>";
+                    }
+
+                    tabla += "</table>";
+                    document.getElementById("mitabla").innerHTML = tabla;
+                }
+            };
+
+            var body = {
+                'gallery_name': 'Jorge Gallery'
+            };
+
+            request.send(JSON.stringify(body));
+        }
+        viewSubjects();
+
+        function deleteSubject() {
+            var subjectToDelete = document.getElementById("userToDelete").value;
+
+            console.log(subjectToDelete);
+            var request = new XMLHttpRequest();
+
+            request.open('POST', 'https://api.kairos.com/gallery/remove_subject');
+
+            request.setRequestHeader('Content-Type', 'application/json');
+            request.setRequestHeader('app_id', 'c91f845b');
+            request.setRequestHeader('app_key', 'c000a704430af1656e1848ea61964077');
+
+
+            request.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    console.log('Status:', this.status);
+                    console.log('Headers:', this.getAllResponseHeaders());
+                    console.log('Body:', this.responseText);
+                }
+            };
+
+
+            var body = {
+                'gallery_name': 'Jorge Gallery',
+                'subject_id': subjectToDelete
+            };
+
+            request.send(JSON.stringify(body));
+            setTimeout(function() {
+                location.reload();
+            }, 3000);
+        }
+
+
+        function deleteGallery() {
+            var request = new XMLHttpRequest();
+
+            request.open('POST', 'https://api.kairos.com/gallery/remove');
+
+            request.setRequestHeader('Content-Type', 'application/json');
+            request.setRequestHeader('app_id', 'c91f845b');
+            request.setRequestHeader('app_key', 'c000a704430af1656e1848ea61964077');
+
+            request.onreadystatechange = function() {
+                if (this.readyState === 4) {
+                    console.log('Status:', this.status);
+                    console.log('Headers:', this.getAllResponseHeaders());
+                    console.log('Body:', this.responseText);
+                }
+            };
+
+            var body = {
+                'gallery_name': 'Jorge Gallery'
+            };
+
+            request.send(JSON.stringify(body));
+            setTimeout(function() {
+                location.reload();
+            }, 3000);
+        }
+
+    </script>
+
+</body>
+
+</html>
